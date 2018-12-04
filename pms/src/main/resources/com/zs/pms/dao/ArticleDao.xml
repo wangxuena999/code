@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 指向DAO接口，做DAO的实现 -->
+<mapper namespace="com.zs.pms.dao.ArticleDao">
+
+	<!-- 关系映射 -->
+	<resultMap type="TArticle" id="articlemap2">
+	  <association property="channel" column="channel" select="getChannel"/>
+	</resultMap>
+	
+	<!-- 关联语句 -->
+	<select id="getChannel" parameterType="int" resultType="TChannel">
+		select * from tchannel where id=#{channel}
+	</select>
+	
+	
+	<!-- 关系映射 -->
+	<resultMap type="TArticle" id="articlemap">
+	  <association property="channel" column="channel" select="getChannel2"/>
+	</resultMap>
+	
+	<!-- 关联语句 -->
+	<select id="getChannel2" parameterType="int" resultType="TChannel">
+		select * from tchannel where id=#{id}
+	</select>
+	
+	<!-- 关联返回 -->
+	<select id="queryById" parameterType="int" resultMap="articlemap">
+		select * from tarticle where id=#{id}
+	</select>
+	
+	<!-- 根据条件查询 -->
+	<select id="queryByCon" parameterType="QueryArticle" resultType="TArticle">
+	  <!-- 调用sql片段  -->
+	  <include refid="selector"/>
+	  <include refid="where"/>
+	  <include refid="order"/>
+	</select>
+	
+	<!-- 查分页 -->
+	<select id="queryByPage" parameterType="QueryArticle" resultMap="articlemap2">
+		<!-- 调用sql片段  -->
+		select * from
+		  (select rownum rn,t.* 
+		  from(
+		  <include refid="selector"/>
+		  <include refid="where"/>
+		  <include refid="order"/>
+		  
+		  )t)t1
+		  <include refid="page"/>
+	</select>
+	
+	<!-- 查询条数 -->
+	<select id="queryCount" parameterType="QueryArticle" resultType="int">
+		<!-- 调用sql片段  -->
+		  select count(1) from tarticle
+		  <include refid="where"/>
+	</select>
+	
+	<!-- SQL片段 -->
+	<!-- 查什么 -->
+	<sql id="selector">
+	  select * from tarticle
+	</sql>
+	
+	<!-- 查询条件 -->
+	<sql id="where">
+	  <where> <!-- 自动判断 -->
+		<!-- 判字符串 -->
+		<if test="title!=null and title!=''">
+			and title=#{title}
+		</if>
+		<if test="author!=null and author!=''">
+			and author=#{author}
+		</if>
+		<if test="isremod!=0">
+			and isremod=#{isremod}
+		</if>
+		<if test="ishot!=0">
+			and ishot=#{ishot}
+		</if>
+		
+	  </where>
+	</sql>
+	
+	<!-- 排序 -->
+	<sql id="order">
+	  order by id desc
+	</sql>
+	
+	<!-- 分页
+	大于号和小于号进行转义
+	>:&gt;
+	<:&lt;
+	 -->
+	<sql id="page">
+	  <where>
+	    <if test="start!=0">
+	      and rn&gt;=#{start}
+	    </if>
+	    <if test="end!=0">
+	      and rn&lt;=#{end}
+	    </if>
+	  </where>
+	</sql>
+	
+	
+	<!-- 删除一条 -->
+	<delete id="delete">
+	  delete from tarticle where id=#{id}
+	
+	</delete>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteByIds">
+		delete from tarticle where id in
+		<!-- 循环 拼串（10,11,12）
+		collection:数组类型   item:临时变量    separator：分隔符
+		open：以xxx开始    close：以xxx结束
+		 -->
+		<foreach collection="array" item="id" separator="," open="(" close=")">
+		  #{id}
+		</foreach>
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="update" parameterType="TArticle">
+	  update tarticle
+	  <set>
+	    <!-- 自动去掉最后一个逗号 -->
+	    <trim prefixOverrides=",">
+	      <if test="title!=null and title!=''">
+	        title=#{title},
+	      </if>
+	      <if test="content!=null and content!=''">
+	        content=#{content},
+	      </if>
+	      <if test="author!=null and author!=''">
+	        author=#{author},
+	      </if>
+	      <if test="channel!=null">
+	        channel=#{channel.id},
+	      </if>
+	      <if test="isremod!=0">
+	        isremod=#{isremod},
+	      </if>
+	      <if test="ishot!=0">
+	        ishot=#{ishot},
+	      </if>
+	      <if test="updator!=0">
+	         updator=#{updator},
+	      </if>
+	      	updatime=sysdate,
+	      
+	    </trim>
+	  </set>
+	  where id=#{id}
+	</update>
+	
+	<!-- 新增 -->
+	<insert id="insert" parameterType="TArticle">
+	  <!-- 主键 -->
+	  <selectKey keyProperty="id" order="BEFORE" resultType="int">
+	    select seq_article.nextval from dual
+	  </selectKey>
+	  insert into tarticle(id,title,content,author,channel,isremod,ishot,creator,creatime)
+	  values(#{id},#{title},#{content},#{author},#{channel.id},#{isremod},#{ishot},#{creator},sysdate)
+	</insert>
+	
+	<!-- 通过栏目表查询文章 -->
+	<select id="queryByChannel" parameterType="int" resultType="TArticle">
+	  select * from tarticle where channel=#{channel}
+	</select>
+</mapper>
+

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 指向DAO接口，做DAO的实现 -->
+<mapper namespace="com.zs.pms.dao.ChannelDao">
+	<!-- 通过上级栏目查询栏目表 -->
+	<select id="queryByPid" parameterType="int" resultType="TChannel">
+	    select * from tchannel where pid=#{pid}
+	</select>
+	
+	<!-- 栏目的一对一  -->
+	<resultMap type="TChannel" id="channelmap">
+	   <association property="cpid" column="pid" select="getchannel"/>
+	</resultMap>
+	
+	<select id="getchannel" parameterType="int" resultType="TChannel">
+	  select * from tchannel where id=#{pid}
+	</select>
+	
+	<!-- 1.通过主键查询 -->
+	<!-- 关联返回 -->
+	<select id="queryById" parameterType="int" resultType="TChannel">
+		select * from tchannel where id=#{id}
+	</select>
+	
+	<!-- 2.新增 -->
+	<insert id="insert" parameterType="TChannel">
+	  <selectKey keyProperty="id" order="BEFORE" resultType="int">
+	    select seq_tchannel.nextval from dual
+	  </selectKey>
+	  insert into tchannel(id,cname,pid,lev,isleaf)
+	  values(#{id},#{cname},#{pid},2,1)
+	</insert>
+	
+	<!-- 3.修改 -->
+	<update id="update" parameterType="TChannel">
+	  update tchannel
+	    <set>
+	      <trim suffixOverrides=",">
+	        <if test="cname!=null and cname!=''">
+	          cname=#{cname},
+	        </if>
+	        <if test="pid!=0">
+	          pid=#{pid},
+	        </if>
+	        
+	      </trim>
+	    
+	    </set>
+	  where id=#{id}
+	</update>
+	
+	<!-- 4.通过主键删除一条 -->
+	<delete id="delete">
+	  delete from tchannel where id=#{id}
+	</delete>
+	
+	<!-- 5.批量删除 -->
+	<delete id="deleteByIds">
+	  delete from tchannel where id in
+	  <!-- 循环 拼串（10,11,12）
+		collection:数组类型   item:临时变量    separator：分隔符
+		open：以xxx开始    close：以xxx结束
+		-->
+		<foreach collection="array" item="id" separator="," open="(" close=")">
+		  #{id}
+		</foreach>
+	</delete>
+	
+	<!-- 6.通过条件查询 -->
+	<select id="queryByCon" parameterType="QueryChannel" resultType="TChannel">
+		<!-- 调用sql片段  -->
+		<include refid="selector"/>
+		<include refid="where"/>
+		<include refid="order"/>
+	</select>
+	
+	<!-- 7.查分页 -->
+	<select id="queryByPage" parameterType="QueryChannel" resultMap="channelmap">
+		<!-- 调用sql片段  -->
+		select * from
+		  (select rownum rn,t.* 
+		  from(
+		  <include refid="selector"/>
+		  <include refid="where"/>
+		  <include refid="order"/>
+		  
+		  )t)t1
+		  <include refid="page"/>
+	</select>
+	
+	<!-- 8.查询条数 -->
+	<!-- 查询条数 -->
+	<select id="queryCount" parameterType="QueryChannel" resultType="int">
+	  <!-- 调用sql片段  -->
+		select count(1) from tchannel
+		<include refid="where"/>
+	</select>
+	
+	<!-- SQL片段 -->
+	<!-- 查什么 -->
+	<sql id="selector">
+	  select * from tchannel
+	</sql>
+	
+	<!-- 查询条件 -->
+	<sql id="where">
+	  <where> <!-- 自动判断 -->
+		<!-- 判字符串 -->
+		<if test="cname!=null and cname!=''">
+			and cname=#{cname}
+		</if>
+		
+		<if test="isleaf!=0">
+			and isleaf=#{isleaf}
+		</if>
+		
+		
+	  </where>
+	</sql>
+	
+	<!-- 排序 -->
+	<sql id="order">
+	  order by id desc
+	</sql>
+	
+	<!-- 分页
+	大于号和小于号进行转义
+	>:&gt;
+	<:&lt;
+	 -->
+	<sql id="page">
+	  <where>
+	    <if test="start!=0">
+	      and rn&gt;=#{start}
+	    </if>
+	    <if test="end!=0">
+	      and rn&lt;=#{end}
+	    </if>
+	  </where>
+	</sql>
+	
+</mapper>
+
