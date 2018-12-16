@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.zs.pms.exception.BusinessException;
 import com.zs.pms.po.TPermission;
 import com.zs.pms.po.TUser;
+import com.zs.pms.service.RedisService;
 import com.zs.pms.service.UserService;
 import com.zs.pms.utils.DateUtil;
 import com.zs.pms.vo.QueryUser;
@@ -21,6 +22,9 @@ import com.zs.pms.vo.QueryUser;
 public class FrameController {
 	@Autowired //注入业务层
 	UserService us;
+	
+	@Autowired
+	RedisService rs;
 	/**
 	 * 登录页面
 	 * @return
@@ -59,7 +63,13 @@ public class FrameController {
 			session.setAttribute("USER", user);
 			//将当前日期传到页面
 			session.setAttribute("TODAY", DateUtil.getDateToString(new Date(),"yyyy-MM-dd"));
-			//登录成功，返回主页面
+			//登录成功，将码表取出后写入Redis中
+			rs.setTCodes("F");//材质
+			rs.setTCodes("C");//颜色
+			rs.setTCodes("S");//尺码
+			rs.setBrands();//品牌
+			rs.setTypes(1);//上衣类型的子类别
+			
 			return "main";
 		} catch (BusinessException e) {
 			//将异常信息回带回页面
@@ -68,7 +78,8 @@ public class FrameController {
 			return "login";
 		} catch (Exception e1) {
 			//返回错误页面
-			return "ERROR";
+			e1.printStackTrace();
+			return "error";
 		}
 	
 	}

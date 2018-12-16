@@ -66,7 +66,18 @@ $(function(){
 </head>
 <body>
 <div class="box-positon">
-  <form action="list.do" method="post" style="padding-top:5px;">
+  
+	<div class="rpos">当前位置: 文章管理 - 列表</div>
+	<form class="ropt">
+	<button class="add" type="button">
+		<a href="javascript:window.location.reload()">刷新</a>
+	</button>
+		<input class="add" type="button" value="添加" onclick="javascript:window.location.href='toadd.do'"/>
+	</form>
+	<div class="clear"></div>
+</div>
+<div class="body-box">
+<form action="list.do" method="post" style="padding-top:5px;">
        作者: <input type="text" value="${QUERY.author }" name="author"/>
 	<select name="isremod">
 	  <c:if test="${QUERY.isremod==0 }">
@@ -90,17 +101,6 @@ $(function(){
 	</select>
 	<input type="submit" class="query" value="查询"/>
   </form>
-	<div class="rpos">当前位置: 文章管理 - 列表</div>
-	<form class="ropt">
-	<button class="add" type="button">
-		<a href="javascript:window.location.reload()">刷新</a>
-	</button>
-		<input class="add" type="button" value="添加" onclick="javascript:window.location.href='toadd.do'"/>
-	</form>
-	<div class="clear"></div>
-</div>
-<div class="body-box">
-
 <form action="deletes.do" method="post" id="tableForm">
 
 <table cellspacing="1" cellpadding="0" width="100%" border="0" class="pn-ltable">

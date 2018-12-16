@@ -67,14 +67,14 @@
 		//设置参数
 		var args={
 		  //url的绝对路径
-		  url:$("#path").val()+"/upload/common.do",
+		  url:"../upload/server.do",
 		  //返回类型
 		  dataType:"text",
 		  //提交方式
 		  type:"post",
 		  success:function(result){
 			  //设置图片属性
-			  $("#img").attr("src",$("#path").val()+"/upload/"+result);
+			  $("#img").attr("src",result);
 			  //将路径设置到隐藏域中
 			  $("#pic").val(result);
 		  }

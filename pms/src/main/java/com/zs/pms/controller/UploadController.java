@@ -2,14 +2,27 @@ package com.zs.pms.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.zs.pms.utils.Constants;
+
+import net.fckeditor.response.UploadResponse;
 
 /**
  * 文件上传控制器
@@ -26,7 +39,7 @@ public class UploadController {
 	 * @return 新文件名
 	 */
 	@RequestMapping("/upload/common.do")
-	@ResponseBody //异步操作
+	@ResponseBody //返回json
 	public String uploadFile(MultipartFile file,HttpServletRequest req){
 		//获得upload文件夹的物理路径
 		String path=req.getRealPath("/upload");
@@ -53,12 +66,84 @@ public class UploadController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return "ERROR";
+			return "error";
+		}
+		
+	}
+	
+	/**
+	 * 上传图片服务器
+	 * @param file
+	 * @return
+	 */
+	@RequestMapping("/upload/server.do")
+	@ResponseBody //返回json
+	public String uploadServer(MultipartFile file){
+		//生成新文件名
+		UUID uuid=UUID.randomUUID();
+		//目标文件夹 32位码+文件后缀（源文件的原生文件名）
+		String destfilename=uuid.toString()+file.getOriginalFilename();
+		
+		//调用Jersey服务
+		Client client=new Client();
+		//图片服务器路径+文件名
+		WebResource wr=client.resource(Constants.PICSERVER+destfilename);
+		
+		try {
+			//利用webservice写入图片
+			wr.put(String.class,file.getBytes());
+			//回完整路径
+			return Constants.PICSERVER+destfilename;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			return "error";
 		}
 		
 		
 		
-		
+	}
+	
+	/**
+	 * 通过fckeditor上传到图片服务器上
+	 * @param req
+	 * @param resp
+	 */
+	@RequestMapping("/upload/fck.do")
+	public void uploadFCK(HttpServletRequest req,HttpServletResponse resp){
+		//强转request
+		MultipartHttpServletRequest mr=(MultipartHttpServletRequest) req;
+		//获得上传文件
+		Map<String, MultipartFile> map=mr.getFileMap();
+		//遍历map
+		Set keys=map.keySet();
+		Iterator<String> its=keys.iterator();
+		while(its.hasNext()){
+			MultipartFile file=map.get(its.next());
+			//上传文件
+			String path=uploadServer(file);
+			//上传成功
+			if(!"error".equals(path)){
+				//写fckEditor
+				UploadResponse ur=UploadResponse.getOK(path);
+				
+				try {
+					//写到response中
+					resp.getWriter().print(ur);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					
+				}
+				
+			}
+			
+			
+		}
 		
 	}
+	
+	
+	
+	
+	
 }

@@ -141,7 +141,7 @@
 <input class="del-button" type="submit" value="删除" /> -->
 </div>
 </form>
-<div class="page pb15" style="float:right;margin-top: -20px">
+<div class="page pb15" style="float:right;margin-top: 10px">
 	<span class="r inb_a page_b">
 		<!-- [当前页/尾页] -->
 		<a href="list.do?page=1&cname=${QUERY.cname }&isleaf=${QUERY.isleaf}">首页</a>

@@ -129,13 +129,14 @@ a {
 						<td width="20%" class="pn-flabel pn-flabel-h">上级栏目:</td>
 						<td width="80%" class="pn-fcontent">
 							<select id="c1" name="pid">
-								<c:forEach items="${LIST }" var="c1">
-								   
-										<option value="${c1.id }">${c1.cname }</option>
-									
-									
-								 
-								 
+								<c:forEach items="${LIST }" var="name">
+								  <c:if test="${CHANNEL.pid==name.id }">
+									<option value="${name.id }" selected="selected">${name.cname }</option>
+								  </c:if>
+								  
+								  <c:if test="${CHANNEL.pid!=name.id }">
+									<option value="${name.id }">${name.cname }</option>
+								  </c:if>
 								</c:forEach>
 							</select>
 						
